@@ -1,9 +1,28 @@
 import UIKit
 
 final class MovieQuizViewController: UIViewController {
+    
+    @IBOutlet private weak var yesButton: UIButton!
+    @IBOutlet private weak var noButton: UIButton!
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupUI()
+    }
+    
+    private func setupUI() {
+        view.backgroundColor = .ypBlack
+        setupButton(button: yesButton, title: "Да")
+        setupButton(button: noButton, title: "Нет")
+    }
+    
+    private func setupButton(button: UIButton, title: String) {
+        button.layer.cornerRadius = 15
+        button.titleLabel?.font = UIFont(name: "YS Display-Medium", size: 20)
+        button.tintColor = .ypBlack
+        button.setTitle(title, for: .normal)
+        
     }
 }
 
