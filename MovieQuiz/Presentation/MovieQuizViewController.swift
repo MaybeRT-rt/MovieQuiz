@@ -19,10 +19,9 @@ final class MovieQuizViewController: UIViewController {
     
     private func setupButton(button: UIButton, title: String) {
         button.layer.cornerRadius = 15
-        button.titleLabel?.font = UIFont(name: "YS Display-Medium", size: 20)
+        button.titleLabel?.font = UIFont(name: "YSDisplay-Medium", size: 20)
         button.tintColor = .ypBlack
         button.setTitle(title, for: .normal)
-        
     }
 }
 
