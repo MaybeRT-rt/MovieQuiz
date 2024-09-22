@@ -2,6 +2,10 @@ import UIKit
 
 final class MovieQuizViewController: UIViewController {
     
+    @IBOutlet weak var questionTitleLabel: UILabel!
+    @IBOutlet weak var indexLabel: UILabel!
+    @IBOutlet weak var previewImage: UIImageView!
+    @IBOutlet weak var questionLabel: UILabel!
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet private weak var noButton: UIButton!
     
@@ -11,10 +15,19 @@ final class MovieQuizViewController: UIViewController {
         setupUI()
     }
     
+    // MARK: - UI
     private func setupUI() {
         view.backgroundColor = .ypBlack
+        previewImage.image = UIImage(named: "Old")
+        previewImage.layer.cornerRadius = 20
+        
         setupButton(button: yesButton, title: "Да")
         setupButton(button: noButton, title: "Нет")
+        
+        setupText(textLabel: questionTitleLabel, fontName: "YSDisplay-Medium", size: 20)
+        setupText(textLabel: indexLabel, fontName: "YSDisplay-Medium", size: 20)
+        setupText(textLabel: questionLabel, fontName: "YSDisplay-Bold", size: 23)
+        
     }
     
     private func setupButton(button: UIButton, title: String) {
@@ -22,6 +35,11 @@ final class MovieQuizViewController: UIViewController {
         button.titleLabel?.font = UIFont(name: "YSDisplay-Medium", size: 20)
         button.tintColor = .ypBlack
         button.setTitle(title, for: .normal)
+    }
+    
+    private func setupText(textLabel: UILabel, fontName: String, size: CGFloat) {
+        textLabel.font = UIFont(name: fontName, size: size) ?? UIFont.systemFont(ofSize: size)
+        textLabel.textColor = .ypWhite
     }
 }
 
