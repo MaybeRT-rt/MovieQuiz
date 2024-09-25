@@ -1,24 +1,97 @@
 import UIKit
 
+struct QuizQuestions {
+    let image: String
+    let text: String
+    let correctAnswer: Bool
+}
+
+struct QuizStepViewModel {
+    let image: UIImage
+    let questions: String
+    let questionNumber: String
+}
+
+
 final class MovieQuizViewController: UIViewController {
     
-    @IBOutlet weak var questionTitleLabel: UILabel!
-    @IBOutlet weak var indexLabel: UILabel!
-    @IBOutlet weak var previewImage: UIImageView!
-    @IBOutlet weak var questionLabel: UILabel!
+    private let questions: [QuizQuestions] = [
+        QuizQuestions(
+                      image: "The Godfather",
+                      text: "Рейтинг этого фильма больше чем 6?",
+                      correctAnswer: true),
+        QuizQuestions(image: "The Dark Knight",
+                      text: "Рейтинг этого фильма больше чем 6?",
+                      correctAnswer: true),
+        QuizQuestions(image: "Kill Bill",
+                      text: "Рейтинг этого фильма больше чем 6?",
+                      correctAnswer: true),
+        QuizQuestions(image: "The Avengers",
+                      text: "Рейтинг этого фильма больше чем 6?",
+                      correctAnswer: true),
+        QuizQuestions(image: "Deadpool",
+                      text: "Рейтинг этого фильма больше чем 6?",
+                      correctAnswer: true),
+        QuizQuestions(image: "The Green Knight",
+                      text: "Рейтинг этого фильма больше чем 6?",
+                      correctAnswer: true),
+        QuizQuestions(image: "Old",
+                      text: "Рейтинг этого фильма больше чем 6?",
+                      correctAnswer: false),
+        QuizQuestions(image: "The Ice Age Adventures of Buck Wild",
+                      text: "Рейтинг этого фильма больше чем 6?",
+                      correctAnswer: false),
+        QuizQuestions(image: "Tesla",
+                      text: "Рейтинг этого фильма больше чем 6?",
+                      correctAnswer: false),
+        QuizQuestions(image: "Vivarium",
+                      text: "Рейтинг этого фильма больше чем 6?",
+                      correctAnswer: false),
+        
+    ]
+    
+
+    // MARK: - IBOutlets
+    @IBOutlet private weak var questionTitleLabel: UILabel!
+    @IBOutlet private weak var indexLabel: UILabel!
+    @IBOutlet private weak var previewImage: UIImageView!
+    @IBOutlet private weak var questionLabel: UILabel!
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet private weak var noButton: UIButton!
+    
+    
+    private var currectQuestionsIndex = 0 // индекс
+    private var correctAnswersCount: Int = 0
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        
+        let currentQuestion = questions[currectQuestionsIndex]
+        let quizStepViewModel = convert(model: currentQuestion)
+        show(quiz: quizStepViewModel)
+    }
+    
+    // MARK: - IB Actions
+    @IBAction private func yesButtonTapped(_ sender: Any) {
+        let currectQuestions = questions[currectQuestionsIndex]
+        let correctAnswer = true
+        
+        showResult(isCorrect: correctAnswer == currectQuestions.correctAnswer)
+    }
+    
+    @IBAction private func noButtonTapped(_ sender: Any) {
+        let currectQuestions = questions[currectQuestionsIndex]
+        let correctAnswer = false
+        
+        showResult(isCorrect: correctAnswer == currectQuestions.correctAnswer)
     }
     
     // MARK: - UI
     private func setupUI() {
         view.backgroundColor = .ypBlack
-        previewImage.image = UIImage(named: "Old")
+        previewImage.backgroundColor = .ypWhite
         previewImage.layer.cornerRadius = 20
         
         setupButton(button: yesButton, title: "Да")
@@ -41,6 +114,45 @@ final class MovieQuizViewController: UIViewController {
         textLabel.font = UIFont(name: fontName, size: size) ?? UIFont.systemFont(ofSize: size)
         textLabel.textColor = .ypWhite
     }
+    
+    // MARK: - Logic
+    private func convert(model: QuizQuestions) -> QuizStepViewModel {
+        let question = QuizStepViewModel(
+            image: UIImage(named: model.image) ?? UIImage(),
+            questions: model.text,
+            questionNumber: "\(currectQuestionsIndex + 1)/\(questions.count)")
+        return question
+    }
+    
+    private func show(quiz step: QuizStepViewModel) {
+        previewImage?.image = step.image
+        questionLabel?.text = step.questions
+        indexLabel?.text = step.questionNumber
+    }
+    
+    private func showResult(isCorrect: Bool) {
+        previewImage.layer.masksToBounds = true
+        previewImage.layer.borderWidth = 8
+        previewImage.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.showNextQuestionsOrFinish()
+        }
+        
+    }
+    
+    private func showNextQuestionsOrFinish() {
+        if currectQuestionsIndex == questions.count - 1 {
+           
+        } else {
+            currectQuestionsIndex += 1
+            let nextQuestion = questions[currectQuestionsIndex]
+            let viewModel = convert(model: nextQuestion)
+            previewImage.layer.borderWidth = 0
+            show(quiz: viewModel)
+        }
+    }
+    
 }
 
 /*
