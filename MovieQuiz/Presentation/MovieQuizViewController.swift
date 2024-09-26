@@ -84,7 +84,6 @@ final class MovieQuizViewController: UIViewController {
         if correctAnswer == currentQuestion.correctAnswer {
             correctAnswersCount += 1
         }
-        
         showResult(isCorrect: correctAnswer == currentQuestion.correctAnswer)
     }
     
@@ -95,7 +94,6 @@ final class MovieQuizViewController: UIViewController {
         if correctAnswer == currentQuestion.correctAnswer {
             correctAnswersCount += 1
         }
-        
         showResult(isCorrect: correctAnswer == currentQuestion.correctAnswer)
     }
     
@@ -111,7 +109,6 @@ final class MovieQuizViewController: UIViewController {
         setupText(textLabel: questionTitleLabel, fontName: "YSDisplay-Medium", size: 20)
         setupText(textLabel: indexLabel, fontName: "YSDisplay-Medium", size: 20)
         setupText(textLabel: questionLabel, fontName: "YSDisplay-Bold", size: 23)
-        
     }
     
     private func setupButton(button: UIButton, title: String) {
@@ -184,7 +181,6 @@ final class MovieQuizViewController: UIViewController {
     private func enabledNextButton(_ isEnabled: Bool) {
         yesButton.isEnabled = isEnabled
         noButton.isEnabled = isEnabled
-        
     }
 }
 
