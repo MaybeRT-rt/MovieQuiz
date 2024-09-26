@@ -80,18 +80,24 @@ final class MovieQuizViewController: UIViewController {
     
     // MARK: - IBActions
     @IBAction private func yesButtonTapped(_ sender: Any) {
-        let currectQuestions = questions[currentQuestionIndex]
+        let currentQuestion = questions[currentQuestionIndex]
         let correctAnswer = true
-        correctAnswersCount += 1
+        if correctAnswer == currentQuestion.correctAnswer {
+            correctAnswersCount += 1
+        }
         
-        showResult(isCorrect: correctAnswer == currectQuestions.correctAnswer)
+        showResult(isCorrect: correctAnswer == currentQuestion.correctAnswer)
     }
     
     @IBAction private func noButtonTapped(_ sender: Any) {
-        let currectQuestions = questions[currentQuestionIndex]
+        let currentQuestion = questions[currentQuestionIndex]
         let correctAnswer = false
         
-        showResult(isCorrect: correctAnswer == currectQuestions.correctAnswer)
+        if correctAnswer == currentQuestion.correctAnswer {
+            correctAnswersCount += 1
+        }
+        
+        showResult(isCorrect: correctAnswer == currentQuestion.correctAnswer)
     }
     
     // MARK: - UI
@@ -164,7 +170,7 @@ final class MovieQuizViewController: UIViewController {
     
     private func showNextQuestionsOrFinish() {
         if currentQuestionIndex == questions.count - 1 {
-            let description = "Вы ответили на \(currentQuestionIndex + 1) из \(questions.count) вопросов"
+            let description = "Вы ответили правильно на \(correctAnswersCount) из \(questions.count) вопросов"
             let result = QuizResultViewModel(title: "Результат", description: description, buttonText: "Попробовать еще раз")
             showResult(quiz: result)
         } else {
