@@ -23,7 +23,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didDiscardSceneSessions sceneSessions: Set<UISceneSession>
     ) -> Bool {
-        sleep(3)
         return true
     }
 }
