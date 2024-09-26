@@ -21,10 +21,9 @@ struct QuizResultViewModel {
 final class MovieQuizViewController: UIViewController {
     
     private let questions: [QuizQuestions] = [
-        QuizQuestions(
-            image: "The Godfather",
-            text: "Рейтинг этого фильма больше чем 6?",
-            correctAnswer: true),
+        QuizQuestions(image: "The Godfather",
+                      text: "Рейтинг этого фильма больше чем 6?",
+                      correctAnswer: true),
         QuizQuestions(image: "The Dark Knight",
                       text: "Рейтинг этого фильма больше чем 6?",
                       correctAnswer: true),
@@ -64,7 +63,6 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet private weak var noButton: UIButton!
     
-    
     private var currentQuestionIndex = 0 // индекс
     private var correctAnswersCount: Int = 0
     
@@ -80,6 +78,7 @@ final class MovieQuizViewController: UIViewController {
     
     // MARK: - IBActions
     @IBAction private func yesButtonTapped(_ sender: Any) {
+        enabledNextButton(false)
         let currentQuestion = questions[currentQuestionIndex]
         let correctAnswer = true
         if correctAnswer == currentQuestion.correctAnswer {
@@ -90,6 +89,7 @@ final class MovieQuizViewController: UIViewController {
     }
     
     @IBAction private func noButtonTapped(_ sender: Any) {
+        enabledNextButton(false)
         let currentQuestion = questions[currentQuestionIndex]
         let correctAnswer = false
         if correctAnswer == currentQuestion.correctAnswer {
@@ -116,7 +116,6 @@ final class MovieQuizViewController: UIViewController {
     
     private func setupButton(button: UIButton, title: String) {
         button.layer.cornerRadius = 15
-        button.titleLabel?.font = UIFont(name: "YSDisplay-Medium", size: 20)
         button.tintColor = .ypBlack
         button.setTitle(title, for: .normal)
     }
@@ -139,6 +138,8 @@ final class MovieQuizViewController: UIViewController {
         previewImage?.image = step.image
         questionLabel?.text = step.questions
         indexLabel?.text = step.questionNumber
+        
+        enabledNextButton(true)
     }
     
     private func showResult(quiz result: QuizResultViewModel) {
@@ -153,8 +154,6 @@ final class MovieQuizViewController: UIViewController {
         
         alert.addAction(action)
         self.present(alert, animated: true, completion: nil)
-        
-        
     }
     
     private func showResult(isCorrect: Bool) {
@@ -180,6 +179,12 @@ final class MovieQuizViewController: UIViewController {
             let viewModel = convert(model: nextQuestion)
             show(quiz: viewModel)
         }
+    }
+    
+    private func enabledNextButton(_ isEnabled: Bool) {
+        yesButton.isEnabled = isEnabled
+        noButton.isEnabled = isEnabled
+        
     }
 }
 
