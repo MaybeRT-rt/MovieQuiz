@@ -92,7 +92,6 @@ final class MovieQuizViewController: UIViewController {
     @IBAction private func noButtonTapped(_ sender: Any) {
         let currentQuestion = questions[currentQuestionIndex]
         let correctAnswer = false
-        
         if correctAnswer == currentQuestion.correctAnswer {
             correctAnswersCount += 1
         }
@@ -172,6 +171,7 @@ final class MovieQuizViewController: UIViewController {
         if currentQuestionIndex == questions.count - 1 {
             let description = "Вы ответили правильно на \(correctAnswersCount) из \(questions.count) вопросов"
             let result = QuizResultViewModel(title: "Результат", description: description, buttonText: "Попробовать еще раз")
+            correctAnswersCount = 0
             showResult(quiz: result)
         } else {
             currentQuestionIndex += 1
