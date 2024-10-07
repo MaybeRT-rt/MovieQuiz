@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
+final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // MARK: - IBOutlets
     @IBOutlet private weak var questionTitleLabel: UILabel!
@@ -11,8 +11,8 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var noButton: UIButton!
     
     private let questionsAmount: Int = 10
-    private var questionFactory: QuestionFactory = QuestionFactory()
     private var currentQuestion: QuizQuestions?
+    private var questionFactory:  QuestionFactoryProtocol = QuestionFactory()
     
     private var currentQuestionIndex = 0 // индекс
     private var correctAnswersCount: Int = 0
@@ -22,10 +22,26 @@ final class MovieQuizViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         
-        if let firstQuestion = questionFactory.requestNextQuestion() {
-            currentQuestion = firstQuestion
-            let quizStepViewModel = convert(model: firstQuestion)
-            show(quiz: quizStepViewModel)
+        let questionFactory = QuestionFactory()
+        questionFactory.setup(delegate: self)
+        self.questionFactory = questionFactory
+        
+        questionFactory.requestNextQuestion() 
+        
+    }
+    
+    // MARK: - QuestionFactoryDelegate
+    
+    func didReceiveNextQuestion(question: QuizQuestions?) {
+        guard let question = question else {
+                return
+            }
+        
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.show(quiz: viewModel)
         }
     }
     
@@ -106,13 +122,8 @@ final class MovieQuizViewController: UIViewController {
         let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.currentQuestionIndex = 0
-            self.previewImage.layer.borderWidth = 0
-            if let firstQuestion = self.questionFactory.requestNextQuestion() {
-                self.currentQuestion = firstQuestion
-                let viewModel = self.convert(model: firstQuestion)
-
-                self.show(quiz: viewModel)
-            }
+            resetImageBorder()
+            questionFactory.requestNextQuestion()
         }
         
         alert.addAction(action)
@@ -132,6 +143,11 @@ final class MovieQuizViewController: UIViewController {
         }
     }
     
+    private func resetImageBorder() {
+        previewImage.layer.borderWidth = 0
+        previewImage.layer.borderColor = nil
+    }
+    
     // Логика перехода к следующему вопросу или завершение викторины
     private func showNextQuestionsOrFinish() {
         if currentQuestionIndex == questionsAmount - 1 {
@@ -143,13 +159,8 @@ final class MovieQuizViewController: UIViewController {
             showFinalResult(quiz: result)
         } else {
             currentQuestionIndex += 1
-            previewImage.layer.borderWidth = 0
-            if let nextQuestion = questionFactory.requestNextQuestion() {
-                currentQuestion = nextQuestion
-                let viewModel = convert(model: nextQuestion)
-
-                show(quiz: viewModel)
-            }
+            resetImageBorder()
+            questionFactory.requestNextQuestion()
         }
     }
     
