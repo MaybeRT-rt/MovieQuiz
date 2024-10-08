@@ -8,6 +8,8 @@ import Foundation
 import UIKit
 
 final class AlertPresenter {
+    weak var alertDelegate: AlertPresenterDelegate?
+    
     func showAlert(on viewController: UIViewController, with model: AlertModel) {
         let alert = UIAlertController(title: model.title, message: model.message, preferredStyle: .alert)
         let action = UIAlertAction(title: model.buttonText, style: .default) { _ in

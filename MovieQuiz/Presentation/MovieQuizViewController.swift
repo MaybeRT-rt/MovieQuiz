@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
+final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
     
     // MARK: - IBOutlets
     @IBOutlet private weak var questionTitleLabel: UILabel!
@@ -13,6 +13,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private let questionsAmount: Int = 10
     private var currentQuestion: QuizQuestions?
     private var questionFactory:  QuestionFactoryProtocol = QuestionFactory()
+    private var alertPresenter = AlertPresenter()
     
     private var currentQuestionIndex = 0 // индекс
     private var correctAnswersCount: Int = 0
@@ -26,8 +27,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         questionFactory.setup(delegate: self)
         self.questionFactory = questionFactory
         
-        questionFactory.requestNextQuestion() 
-        
+        questionFactory.requestNextQuestion()
     }
     
     // MARK: - QuestionFactoryDelegate
@@ -118,16 +118,22 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // Отображаем результат викторины
     private func showFinalResult(quiz result: QuizResultViewModel) {
         let alertPresenter = AlertPresenter()
+        alertPresenter.alertDelegate = self
         
         let alertModel = AlertModel(title: result.title, message: result.description, buttonText: result.buttonText, completion: { [weak self] in
             guard let self = self else { return }
-            self.currentQuestionIndex = 0
-            resetImageBorder()
-            questionFactory.requestNextQuestion()
+            self.didAlertPresenter()
             }
         )
         alertPresenter.showAlert(on: self, with: alertModel)
     }
+    
+    func didAlertPresenter() {
+        self.currentQuestionIndex = 0
+        resetImageBorder()
+        questionFactory.requestNextQuestion()
+    }
+    
     
 //        let alert = UIAlertController(title: result.title, message: result.description, preferredStyle: .alert)
 //
