@@ -117,18 +117,29 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // Отображаем результат викторины
     private func showFinalResult(quiz result: QuizResultViewModel) {
-        let alert = UIAlertController(title: result.title, message: result.description, preferredStyle: .alert)
+        let alertPresenter = AlertPresenter()
         
-        let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
+        let alertModel = AlertModel(title: result.title, message: result.description, buttonText: result.buttonText, completion: { [weak self] in
             guard let self = self else { return }
             self.currentQuestionIndex = 0
             resetImageBorder()
             questionFactory.requestNextQuestion()
-        }
-        
-        alert.addAction(action)
-        self.present(alert, animated: true, completion: nil)
+            }
+        )
+        alertPresenter.showAlert(on: self, with: alertModel)
     }
+    
+//        let alert = UIAlertController(title: result.title, message: result.description, preferredStyle: .alert)
+//
+//        let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
+//            guard let self = self else { return }
+//            self.currentQuestionIndex = 0
+//            resetImageBorder()
+//            questionFactory.requestNextQuestion()
+//        }
+//
+//        alert.addAction(action)
+//        self.present(alert, animated: true, completion: nil)
     
     // Отображаем результат ответа (правильный или неправильный)
     private func showResult(isCorrect: Bool) {

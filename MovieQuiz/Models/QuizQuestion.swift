@@ -8,7 +8,6 @@
 import Foundation
 import UIKit
 
-
 // Структура описывающая один вопрос викторины
 struct QuizQuestions {
     let image: String
