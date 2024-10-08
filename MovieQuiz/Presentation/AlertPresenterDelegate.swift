@@ -6,5 +6,5 @@
 //
 
 protocol AlertPresenterDelegate: AnyObject {
-    func didAlertPresenter()
+    func alertButtonTapped()
 }

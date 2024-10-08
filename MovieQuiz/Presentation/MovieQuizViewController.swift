@@ -122,13 +122,13 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         
         let alertModel = AlertModel(title: result.title, message: result.description, buttonText: result.buttonText, completion: { [weak self] in
             guard let self = self else { return }
-            self.didAlertPresenter()
+            self.alertButtonTapped()
             }
         )
         alertPresenter.showAlert(on: self, with: alertModel)
     }
     
-    func didAlertPresenter() {
+    func alertButtonTapped() {
         self.currentQuestionIndex = 0
         resetImageBorder()
         questionFactory.requestNextQuestion()
