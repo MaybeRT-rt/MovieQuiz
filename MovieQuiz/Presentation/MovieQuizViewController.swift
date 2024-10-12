@@ -153,22 +153,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         previewImage.layer.borderColor = nil
     }
     
-    // Логика перехода к следующему вопросу или завершение викторины
-//    private func showNextQuestionsOrFinish() {
-//        if currentQuestionIndex == questionsAmount - 1 {
-//            let description = correctAnswersCount == questionsAmount ?
-//            "Поздравляем, вы ответили на 10 из 10!" :
-//            "Вы ответили на \(correctAnswersCount) из 10, попробуйте ещё раз!"
-//            let result = QuizResultViewModel(title: "Результат", description: description, buttonText: "Попробовать еще раз")
-//            correctAnswersCount = 0
-//            showFinalResult(quiz: result)
-//        } else {
-//            currentQuestionIndex += 1
-//            resetImageBorder()
-//            questionFactory.requestNextQuestion()
-//        }
-//    }
-    
     private func showNextQuestionsOrFinish() {
         if currentQuestionIndex == questionsAmount - 1 {
             // Завершение викторины: обновляем статистику
