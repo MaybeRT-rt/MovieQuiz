@@ -14,6 +14,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     private var currentQuestion: QuizQuestions?
     private var questionFactory:  QuestionFactoryProtocol = QuestionFactory()
     private var alertPresenter = AlertPresenter()
+    private let statisticService = StatisticService()
     
     private var currentQuestionIndex = 0 // индекс
     private var correctAnswersCount: Int = 0
@@ -134,19 +135,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         questionFactory.requestNextQuestion()
     }
     
-    
-//        let alert = UIAlertController(title: result.title, message: result.description, preferredStyle: .alert)
-//
-//        let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
-//            guard let self = self else { return }
-//            self.currentQuestionIndex = 0
-//            resetImageBorder()
-//            questionFactory.requestNextQuestion()
-//        }
-//
-//        alert.addAction(action)
-//        self.present(alert, animated: true, completion: nil)
-    
     // Отображаем результат ответа (правильный или неправильный)
     private func showResult(isCorrect: Bool) {
         previewImage.layer.masksToBounds = true
@@ -166,15 +154,50 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     }
     
     // Логика перехода к следующему вопросу или завершение викторины
+//    private func showNextQuestionsOrFinish() {
+//        if currentQuestionIndex == questionsAmount - 1 {
+//            let description = correctAnswersCount == questionsAmount ?
+//            "Поздравляем, вы ответили на 10 из 10!" :
+//            "Вы ответили на \(correctAnswersCount) из 10, попробуйте ещё раз!"
+//            let result = QuizResultViewModel(title: "Результат", description: description, buttonText: "Попробовать еще раз")
+//            correctAnswersCount = 0
+//            showFinalResult(quiz: result)
+//        } else {
+//            currentQuestionIndex += 1
+//            resetImageBorder()
+//            questionFactory.requestNextQuestion()
+//        }
+//    }
+    
     private func showNextQuestionsOrFinish() {
         if currentQuestionIndex == questionsAmount - 1 {
-            let description = correctAnswersCount == questionsAmount ?
-            "Поздравляем, вы ответили на 10 из 10!" :
-            "Вы ответили на \(correctAnswersCount) из 10, попробуйте ещё раз!"
+            // Завершение викторины: обновляем статистику
+            statisticService.store(correct: correctAnswersCount, total: questionsAmount)
+            
+            // Получаем общую точность и количество игр из сервиса статистики
+            let totalAccuracy = statisticService.totalAccuracy
+            let gameCount = statisticService.gameCount
+            let bestGame = statisticService.bestGame
+            
+            // Описание текущей игры и статистики
+            let description = """
+            \(correctAnswersCount == questionsAmount ? "Поздравляем, вы ответили на 10 из 10!" : "Вы ответили на \(correctAnswersCount) из 10, попробуйте ещё раз!")
+            
+            Всего сыграно игр: \(gameCount)
+            Ваша лучшая игра: \(bestGame.correct)/\(bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
+            Общая точность: \(String(format: "%.2f", totalAccuracy))%
+            """
+            
+            // Создаем результат для отображения в алерте
             let result = QuizResultViewModel(title: "Результат", description: description, buttonText: "Попробовать еще раз")
-            correctAnswersCount = 0
+            
+            // Показываем финальный результат
             showFinalResult(quiz: result)
+            
+            // Сбрасываем счетчик правильных ответов
+            correctAnswersCount = 0
         } else {
+            // Если это не последний вопрос, продолжаем викторину
             currentQuestionIndex += 1
             resetImageBorder()
             questionFactory.requestNextQuestion()
