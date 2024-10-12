@@ -63,7 +63,6 @@ extension StatisticService: StatisticServiceProtocol {
         get {
             let correctAnswers = storage.integer(forKey: Keys.correctAnswers.rawValue)
             let totalQuestions = storage.integer(forKey: Keys.totalAnswers.rawValue)
-            print("Correct Answers: \(correctAnswers), Total Questions: \(totalQuestions)")
             return totalQuestions > 0 ? (Double(correctAnswers) / Double(totalQuestions)) * 100 : 0
         }
     }
