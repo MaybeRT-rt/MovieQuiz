@@ -12,9 +12,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     
     private let questionsAmount: Int = 10
     private var currentQuestion: QuizQuestions?
-    private var questionFactory:  QuestionFactoryProtocol = QuestionFactory()
+    private var questionFactory: QuestionFactoryProtocol = QuestionFactory()
     private var alertPresenter = AlertPresenter()
-    private let statisticService = StatisticService()
+    private let statisticService: StatisticServiceProtocol = StatisticService()
     
     private var currentQuestionIndex = 0 // индекс
     private var correctAnswersCount: Int = 0
@@ -165,15 +165,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             
             // Описание текущей игры и статистики
             let description = """
-            \(correctAnswersCount == questionsAmount ? "Поздравляем, вы ответили на 10 из 10!" : "Вы ответили на \(correctAnswersCount) из 10, попробуйте ещё раз!")
-            
-            Всего сыграно игр: \(gameCount)
-            Ваша лучшая игра: \(bestGame.correct)/\(bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
-            Общая точность: \(String(format: "%.2f", totalAccuracy))%
+            Ваш результат: \(correctAnswersCount)/\(questionsAmount)
+            Количество сыграных квизов: \(gameCount)
+            Рекорд: \(bestGame.correct)/\(bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
+            Средняя точность: \(String(format: "%.2f", totalAccuracy))%
             """
             
             // Создаем результат для отображения в алерте
-            let result = QuizResultViewModel(title: "Результат", description: description, buttonText: "Попробовать еще раз")
+            let result = QuizResultViewModel(title: "Этот раунд окончен!", description: description, buttonText: "Сыграть еще раз")
             
             // Показываем финальный результат
             showFinalResult(quiz: result)

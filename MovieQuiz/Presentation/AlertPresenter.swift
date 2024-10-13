@@ -16,6 +16,7 @@ final class AlertPresenter {
             model.completion()
         }
         alert.addAction(action)
+        alert.preferredAction = action
         viewController.present(alert, animated: true)
     }
 }
