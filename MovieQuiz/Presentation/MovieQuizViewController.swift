@@ -98,12 +98,17 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     
     // Отображаем текущий вопрос
     private func show(quiz step: QuizStepViewModel) {
+        previewImage?.isHidden = true // Скрываем старое изображение
         previewImage?.image = step.image
         questionLabel?.text = step.questions
         indexLabel?.text = step.questionNumber
         
-        enabledNextButton(true)
-        hideLoadingIndicator()
+        // Показать изображение только после его загрузки
+        DispatchQueue.main.async {
+            self.previewImage?.isHidden = false // Показываем новое изображение
+            self.enabledNextButton(true)
+            self.hideLoadingIndicator()
+        }
     }
     
     // Отображаем результат викторины
@@ -170,6 +175,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         } else {
             // Если это не последний вопрос, продолжаем викторину
             currentQuestionIndex += 1
+            previewImage.image = nil
             resetImageBorder()
             questionFactory?.requestNextQuestion()
         }
@@ -221,15 +227,13 @@ extension MovieQuizViewController: QuestionFactoryDelegate {
         
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
+            self?.hideLoadingIndicator()
         }
     }
     
     func didLoadDataFromServer() {
         hideLoadingIndicator()
-        
-        currentQuestionIndex = 0 // Сбрасываем индекс на 0
-        indexLabel.text = "\(currentQuestionIndex + 1)/\(questionsAmount)" // Устанавливаем индекс как "1/10"
-        
+                
         questionFactory?.requestNextQuestion() // Запрашиваем первый вопрос
     }
     
