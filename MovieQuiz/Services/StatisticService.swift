@@ -31,6 +31,7 @@ extension StatisticService: StatisticServiceProtocol {
             let correct = storage.integer(forKey: Keys.bestGameCorrect.rawValue)
             let total = storage.integer(forKey: Keys.bestGameTotal.rawValue)
             let date = storage.object(forKey: Keys.bestGameDate.rawValue) as? Date ?? Date()
+            print("Получен рекорд: correct = \(correct), total = \(total), date = \(date)")
             return GameResult(correct: correct, total: total, date: date)
         }
         
@@ -38,6 +39,7 @@ extension StatisticService: StatisticServiceProtocol {
             storage.set(newValue.correct, forKey: Keys.bestGameCorrect.rawValue)
             storage.set(newValue.total, forKey: Keys.bestGameTotal.rawValue)
             storage.set(newValue.date, forKey: Keys.bestGameDate.rawValue)
+            print("Сохранён новый рекорд: \(newValue)")
         }
     }
     

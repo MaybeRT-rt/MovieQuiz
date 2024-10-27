@@ -12,6 +12,12 @@ struct GameResult {
     let date: Date
     
     func isCorrect(_ anotherTotal: GameResult) -> Bool {
-        correct > anotherTotal.correct
+        if self.correct > anotherTotal.correct {
+            return true
+        } else if self.correct == anotherTotal.correct {
+            // Если количество правильных ответов одинаково, сравниваем по дате
+            return self.date > anotherTotal.date
+        }
+        return false
     }
 }

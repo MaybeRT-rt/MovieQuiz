@@ -17,8 +17,6 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     private var alertPresenter = AlertPresenter()
     private var statisticService: StatisticServiceProtocol = StatisticService()
     
-   
-    
     private var currentQuestionIndex = 0 // индекс
     private var correctAnswersCount: Int = 0
     
@@ -28,8 +26,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         setupUI()
         
         alertPresenter.alertDelegate = self
-
-        
+    
         questionFactory = QuestionFactory(delegate: self, movieLoader: MoviesLoader())
         statisticService = StatisticService()
         
@@ -63,7 +60,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     // MARK: - UI
     private func setupUI() {
         view.backgroundColor = .ypBlack
-        previewImage.backgroundColor = .ypWhite
+        
         previewImage.layer.cornerRadius = 20
         
         setupButton(button: yesButton, title: "Да")
@@ -106,6 +103,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         indexLabel?.text = step.questionNumber
         
         enabledNextButton(true)
+        hideLoadingIndicator()
     }
     
     // Отображаем результат викторины
@@ -133,6 +131,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             
             guard let self = self else { return }
+            self.showLoadingIndicator()
             self.showNextQuestionsOrFinish()
         }
     }
@@ -154,11 +153,11 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
             
             // Описание текущей игры и статистики
             let description = """
-            Ваш результат: \(correctAnswersCount)/\(questionsAmount)
-            Количество сыграных квизов: \(gameCount)
-            Рекорд: \(bestGame.correct)/\(bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
-            Средняя точность: \(String(format: "%.2f", totalAccuracy))%
-            """
+                Ваш результат: \(correctAnswersCount)/\(questionsAmount)
+                Количество сыграных квизов: \(gameCount)
+                Рекорд: \(bestGame.correct)/\(bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
+                Средняя точность: \(String(format: "%.2f", totalAccuracy))%
+                """
             
             // Создаем результат для отображения в алерте
             let result = QuizResultViewModel(title: "Этот раунд окончен!", description: description, buttonText: "Сыграть еще раз")
@@ -226,8 +225,12 @@ extension MovieQuizViewController: QuestionFactoryDelegate {
     }
     
     func didLoadDataFromServer() {
-        activityIndicator.isHidden = true
-        questionFactory?.requestNextQuestion()
+        hideLoadingIndicator()
+        
+        currentQuestionIndex = 0 // Сбрасываем индекс на 0
+        indexLabel.text = "\(currentQuestionIndex + 1)/\(questionsAmount)" // Устанавливаем индекс как "1/10"
+        
+        questionFactory?.requestNextQuestion() // Запрашиваем первый вопрос
     }
     
     func didFailToLoadData(error: any Error) {
