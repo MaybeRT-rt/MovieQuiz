@@ -106,10 +106,15 @@
                                     </stackView>
                                 </subviews>
                             </stackView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="Z9I-Dh-nwk">
+                                <rect key="frame" x="197" y="438" width="20" height="20"/>
+                            </activityIndicatorView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" name="YP Black"/>
                         <constraints>
+                            <constraint firstItem="Z9I-Dh-nwk" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="4bN-qL-H1g"/>
+                            <constraint firstItem="Z9I-Dh-nwk" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="CjA-nz-zKC"/>
                             <constraint firstItem="LDf-w5-peQ" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="Vo4-ab-Y78"/>
                             <constraint firstItem="LDf-w5-peQ" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="vno-af-R5y"/>
                             <constraint firstItem="LDf-w5-peQ" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="wDf-8Q-06o"/>
@@ -117,6 +122,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="activityIndicator" destination="Z9I-Dh-nwk" id="UcS-w5-wDj"/>
                         <outlet property="indexLabel" destination="vb7-qp-gcy" id="gHG-Dg-Fkz"/>
                         <outlet property="noButton" destination="v4a-Pl-HxO" id="zE6-d3-Zng"/>
                         <outlet property="previewImage" destination="QHP-rQ-pqF" id="E91-Tq-wuc"/>
