@@ -4,6 +4,7 @@
 //
 //  Created by Liz-Mary on 11.10.2024.
 //
+
 import Foundation
 
 final class StatisticService {

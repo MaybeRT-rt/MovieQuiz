@@ -1,3 +1,10 @@
+//
+//  MovieQuizViewController.swift
+//  MovieQuiz
+//
+//  Created by Liz-Mary on 21.09.2024.
+//
+
 import UIKit
 
 final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
@@ -60,6 +67,8 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     // MARK: - UI
     private func setupUI() {
         view.backgroundColor = .ypBlack
+        
+        activityIndicator.hidesWhenStopped = true
         
         previewImage.layer.cornerRadius = 20
         
@@ -187,12 +196,10 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     }
     
     private func showLoadingIndicator() {
-        activityIndicator.isHidden = false
         activityIndicator.startAnimating()
     }
     
     private func hideLoadingIndicator() {
-        activityIndicator.isHidden = true
         activityIndicator.stopAnimating()
     }
     
