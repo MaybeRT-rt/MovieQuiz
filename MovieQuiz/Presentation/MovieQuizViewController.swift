@@ -34,7 +34,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         
         alertPresenter.alertDelegate = self
     
-        questionFactory = QuestionFactory(delegate: self, movieLoader: MoviesLoader())
+        questionFactory = QuestionFactory(delegate: self, movieLoader: MoviesLoader(), questionGenerator: QuestionGenerator())
         statisticService = StatisticService()
         
         showLoadingIndicator()
@@ -98,7 +98,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     // Конвертируем модель вопроса в модель отображения
     private func convert(model: QuizQuestions) -> QuizStepViewModel {
         let question = QuizStepViewModel(
-            image: (UIImage(data: model.image) ?? UIImage()),
+            image: (UIImage(data: model.image ?? Data()) ?? UIImage()),
             questions: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
 

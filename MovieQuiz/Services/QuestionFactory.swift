@@ -10,12 +10,14 @@ final class QuestionFactory: QuestionFactoryProtocol {
     
     private weak var delegate: QuestionFactoryDelegate?
     private let movieLoader: MoviesLoading
+    private let questionGenerator: QuestionGeneratorProtocol
     
     private var movies: [MostPopularMovie] = []
     
-    init(delegate: QuestionFactoryDelegate?, movieLoader: MoviesLoading) {
+    init(delegate: QuestionFactoryDelegate?, movieLoader: MoviesLoading, questionGenerator: QuestionGeneratorProtocol) {
         self.delegate = delegate
         self.movieLoader = movieLoader
+        self.questionGenerator = questionGenerator
     }
     
     func loadData() {
@@ -35,7 +37,6 @@ final class QuestionFactory: QuestionFactoryProtocol {
     }
     
     func requestNextQuestion() {
-        
         DispatchQueue.global().async { [weak self] in
             guard let self = self, !self.movies.isEmpty else {
                 DispatchQueue.main.async {
@@ -51,10 +52,14 @@ final class QuestionFactory: QuestionFactoryProtocol {
             networkClient.fetch(url: movie.resizedImageURL) { result in
                 switch result {
                 case .success(let imageData):
-                    let rating = Float(movie.rating) ?? 0
-                    let text = "Рейтинг этого фильма больше чем 7?"
-                    let correctAnswer = rating > 7
-                    let question = QuizQuestions(image: imageData, text: text, correctAnswer: correctAnswer)
+                    guard let questionGanerate = self.questionGenerator.generateQuestion(for: movie) else {
+                        DispatchQueue.main.async {
+                            self.delegate?.didReceiveNextQuestion(question: nil)
+                        }
+                        return
+                    }
+                    //print(movie.rating)
+                    let question = QuizQuestions(image: imageData, text: questionGanerate.text, correctAnswer: questionGanerate.correctAnswer)
                     
                     DispatchQueue.main.async { [weak self] in
                         self?.delegate?.didReceiveNextQuestion(question: question)
