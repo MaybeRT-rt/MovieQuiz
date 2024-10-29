@@ -4,6 +4,7 @@
 //
 //  Created by Liz-Mary on 11.10.2024.
 //
+
 import Foundation
 
 final class StatisticService {
@@ -69,7 +70,6 @@ extension StatisticService: StatisticServiceProtocol {
     
     
     func store(correct count: Int, total amount: Int) {
-        print("Storing - Correct: \(count), Total: \(amount)")
         gameCount += 1
         
         // Обновляем количество правильных ответов

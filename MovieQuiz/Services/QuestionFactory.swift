@@ -8,53 +8,70 @@ import Foundation
 
 final class QuestionFactory: QuestionFactoryProtocol {
     
-    weak var delegate: QuestionFactoryDelegate?
+    private weak var delegate: QuestionFactoryDelegate?
+    private let movieLoader: MoviesLoading
+    private let questionGenerator: QuestionGeneratorProtocol
     
-    func setup(delegate: QuestionFactoryDelegate) {
+    private var movies: [MostPopularMovie] = []
+    
+    init(delegate: QuestionFactoryDelegate?, movieLoader: MoviesLoading, questionGenerator: QuestionGeneratorProtocol) {
         self.delegate = delegate
+        self.movieLoader = movieLoader
+        self.questionGenerator = questionGenerator
     }
-
-    // Массив вопросов для викторины
-    private let questions: [QuizQuestions] = [
-        QuizQuestions(image: "The Godfather",
-                      text: "Рейтинг этого фильма больше чем 6?",
-                      correctAnswer: true),
-        QuizQuestions(image: "The Dark Knight",
-                      text: "Рейтинг этого фильма больше чем 6?",
-                      correctAnswer: true),
-        QuizQuestions(image: "Kill Bill",
-                      text: "Рейтинг этого фильма больше чем 6?",
-                      correctAnswer: true),
-        QuizQuestions(image: "The Avengers",
-                      text: "Рейтинг этого фильма больше чем 6?",
-                      correctAnswer: true),
-        QuizQuestions(image: "Deadpool",
-                      text: "Рейтинг этого фильма больше чем 6?",
-                      correctAnswer: true),
-        QuizQuestions(image: "The Green Knight",
-                      text: "Рейтинг этого фильма больше чем 6?",
-                      correctAnswer: true),
-        QuizQuestions(image: "Old",
-                      text: "Рейтинг этого фильма больше чем 6?",
-                      correctAnswer: false),
-        QuizQuestions(image: "The Ice Age Adventures of Buck Wild",
-                      text: "Рейтинг этого фильма больше чем 6?",
-                      correctAnswer: false),
-        QuizQuestions(image: "Tesla",
-                      text: "Рейтинг этого фильма больше чем 6?",
-                      correctAnswer: false),
-        QuizQuestions(image: "Vivarium",
-                      text: "Рейтинг этого фильма больше чем 6?",
-                      correctAnswer: false),
-    ]
+    
+    func loadData() {
+        movieLoader.loadMovies { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                switch result {
+                case .success(let mostPopularMovies):
+                    self.movies = mostPopularMovies.items
+                    self.delegate?.didLoadDataFromServer()
+                case .failure(let error):
+                    print("Failed to load movies: \(error.localizedDescription)")
+                    self.delegate?.didFailToLoadData(error: error)
+                }
+            }
+        }
+    }
     
     func requestNextQuestion() {
-        guard let index = (0..<questions.count).randomElement() else {
-            delegate?.didReceiveNextQuestion(question: nil)
-            return
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self, !self.movies.isEmpty else {
+                DispatchQueue.main.async {
+                    self?.delegate?.didReceiveNextQuestion(question: nil)
+                }
+                return
+            }
+            
+            let index = Int.random(in: 0..<self.movies.count)
+            let movie = self.movies[index]
+            
+            let networkClient = NetworkClient()
+            networkClient.fetch(url: movie.resizedImageURL) { result in
+                switch result {
+                case .success(let imageData):
+                    guard let questionGanerate = self.questionGenerator.generateQuestion(for: movie) else {
+                        DispatchQueue.main.async {
+                            self.delegate?.didReceiveNextQuestion(question: nil)
+                        }
+                        return
+                    }
+                    //print(movie.rating)
+                    let question = QuizQuestions(image: imageData, text: questionGanerate.text, correctAnswer: questionGanerate.correctAnswer)
+                    
+                    DispatchQueue.main.async { [weak self] in
+                        self?.delegate?.didReceiveNextQuestion(question: question)
+                    }
+                    
+                case .failure(let error):
+                    print("Failed to load image: \(error.localizedDescription)")
+                    DispatchQueue.main.async {
+                        self.delegate?.didFailToLoadData(error: error)
+                    }
+                }
+            }
         }
-        let questions = questions[safe: index]
-        delegate?.didReceiveNextQuestion(question: questions)
     }
-    
 }
