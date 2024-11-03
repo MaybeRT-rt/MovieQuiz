@@ -31,6 +31,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        addAccessibilityIdentifier()
         
         alertPresenter.alertDelegate = self
     
@@ -78,6 +79,13 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         setupText(textLabel: questionTitleLabel, fontName: "YSDisplay-Medium", size: 20)
         setupText(textLabel: indexLabel, fontName: "YSDisplay-Medium", size: 20)
         setupText(textLabel: questionLabel, fontName: "YSDisplay-Bold", size: 23)
+    }
+    
+    private func addAccessibilityIdentifier() {
+        previewImage.accessibilityIdentifier = "Poster"
+        yesButton.accessibilityIdentifier = "Yes"
+        noButton.accessibilityIdentifier = "No"
+        indexLabel.accessibilityIdentifier = "Index"
     }
     
     // Настройка кнопок
