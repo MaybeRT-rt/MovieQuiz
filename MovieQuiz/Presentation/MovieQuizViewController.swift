@@ -18,13 +18,12 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     @IBOutlet private weak var noButton: UIButton!
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     
-    private let questionsAmount: Int = 10
     private var currentQuestion: QuizQuestions?
     private var questionFactory: QuestionFactoryProtocol?
     private var alertPresenter = AlertPresenter()
     private var statisticService: StatisticServiceProtocol = StatisticService()
+    private let presenter = MovieQuizPresenter()
     
-    private var currentQuestionIndex = 0 // индекс
     private var correctAnswersCount: Int = 0
     
     // MARK: - Lifecycle
@@ -102,17 +101,6 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     }
     
     // MARK: - Logic
-    
-    // Конвертируем модель вопроса в модель отображения
-    private func convert(model: QuizQuestions) -> QuizStepViewModel {
-        let question = QuizStepViewModel(
-            image: (UIImage(data: model.image ?? Data()) ?? UIImage()),
-            questions: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-
-        return question
-    }
-    
     // Отображаем текущий вопрос
     private func show(quiz step: QuizStepViewModel) {
         previewImage?.isHidden = true // Скрываем старое изображение
@@ -139,7 +127,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     }
     
     func alertButtonTapped() {
-        self.currentQuestionIndex = 0
+        presenter.resetQuestionIndex()
         resetImageBorder()
         questionFactory?.requestNextQuestion()
     }
@@ -164,9 +152,9 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     }
     
     private func showNextQuestionsOrFinish() {
-        if currentQuestionIndex == questionsAmount - 1 {
+        if presenter.isLastQuestion() {
             // Завершение викторины: обновляем статистику
-            statisticService.store(correct: correctAnswersCount, total: questionsAmount)
+            statisticService.store(correct: correctAnswersCount, total: presenter.questionsAmount)
             
             // Получаем общую точность и количество игр из сервиса статистики
             let totalAccuracy = statisticService.totalAccuracy
@@ -175,7 +163,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
             
             // Описание текущей игры и статистики
             let description = """
-                Ваш результат: \(correctAnswersCount)/\(questionsAmount)
+                Ваш результат: \(correctAnswersCount)/\(presenter.questionsAmount)
                 Количество сыграных квизов: \(gameCount)
                 Рекорд: \(bestGame.correct)/\(bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
                 Средняя точность: \(String(format: "%.2f", totalAccuracy))%
@@ -191,7 +179,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
             correctAnswersCount = 0
         } else {
             // Если это не последний вопрос, продолжаем викторину
-            currentQuestionIndex += 1
+            presenter.switchToNextQuestion()
             previewImage.image = nil
             resetImageBorder()
             questionFactory?.requestNextQuestion()
@@ -217,13 +205,12 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         let alert = AlertModel(title: "Ошибка", message: message, buttonText: "Поробовать еще раз", completion: { [weak self] in
             guard let self = self else { return }
             
-            self.currentQuestionIndex = 0
+            presenter.resetQuestionIndex()
             self.correctAnswersCount = 0
             self.questionFactory?.requestNextQuestion()
         })
         
         alertPresenter.showAlert(on: self, with: alert)
-        
     }
 }
 
@@ -238,7 +225,7 @@ extension MovieQuizViewController: QuestionFactoryDelegate {
         }
         
         currentQuestion = question
-        let viewModel = convert(model: question)
+        let viewModel = presenter.convert(model: question)
         
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
