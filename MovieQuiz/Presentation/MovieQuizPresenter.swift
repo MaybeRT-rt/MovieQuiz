@@ -10,8 +10,12 @@ import UIKit
 
 final class MovieQuizPresenter {
     
+    var currentQuestion: QuizQuestions?
+    weak var viewController: MovieQuizViewController?
+    
     let questionsAmount: Int = 10
     var currentQuestionIndex = 0
+    var correctAnswersCount = 0
     
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
@@ -25,6 +29,10 @@ final class MovieQuizPresenter {
         currentQuestionIndex += 1
     }
     
+    func resetCorrectAnswersCount() {
+        correctAnswersCount = 0
+    }
+    
     // Конвертируем модель вопроса в модель отображения
     func convert(model: QuizQuestions) -> QuizStepViewModel {
         let question = QuizStepViewModel(
@@ -33,5 +41,25 @@ final class MovieQuizPresenter {
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
 
         return question
+    }
+    
+    func yesButtonTapped() {
+        guard let currentQuestion = currentQuestion else { return }
+        
+        let correctAnswer = true
+        if correctAnswer == currentQuestion.correctAnswer {
+            correctAnswersCount += 1
+        }
+        viewController?.showResult(isCorrect: correctAnswer == currentQuestion.correctAnswer)
+    }
+    
+     func noButtonTapped() {
+        guard let currentQuestion = currentQuestion else { return }
+        
+        let correctAnswer = false
+        if correctAnswer == currentQuestion.correctAnswer {
+            correctAnswersCount += 1
+        }
+         viewController?.showResult(isCorrect: correctAnswer == currentQuestion.correctAnswer)
     }
 }

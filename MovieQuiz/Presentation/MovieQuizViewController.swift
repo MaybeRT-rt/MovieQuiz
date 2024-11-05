@@ -33,6 +33,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         addAccessibilityIdentifier()
         
         alertPresenter.alertDelegate = self
+        presenter.viewController = self
     
         questionFactory = QuestionFactory(delegate: self, movieLoader: MoviesLoader(), questionGenerator: QuestionGenerator())
         statisticService = StatisticService()
@@ -44,24 +45,14 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     // MARK: - IBActions
     @IBAction private func yesButtonTapped(_ sender: Any) {
         enabledNextButton(false)
-        guard let currentQuestion = currentQuestion else { return }
-        
-        let correctAnswer = true
-        if correctAnswer == currentQuestion.correctAnswer {
-            correctAnswersCount += 1
-        }
-        showResult(isCorrect: correctAnswer == currentQuestion.correctAnswer)
+        presenter.currentQuestion = currentQuestion
+        presenter.yesButtonTapped()
     }
     
     @IBAction private func noButtonTapped(_ sender: Any) {
         enabledNextButton(false)
-        guard let currentQuestion = currentQuestion else { return }
-        
-        let correctAnswer = false
-        if correctAnswer == currentQuestion.correctAnswer {
-            correctAnswersCount += 1
-        }
-        showResult(isCorrect: correctAnswer == currentQuestion.correctAnswer)
+        presenter.currentQuestion = currentQuestion
+        presenter.noButtonTapped()
     }
     
     // MARK: - UI
@@ -133,7 +124,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     }
     
     // Отображаем результат ответа (правильный или неправильный)
-    private func showResult(isCorrect: Bool) {
+    func showResult(isCorrect: Bool) {
         previewImage.layer.masksToBounds = true
         previewImage.layer.borderWidth = 8
         previewImage.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
@@ -154,7 +145,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     private func showNextQuestionsOrFinish() {
         if presenter.isLastQuestion() {
             // Завершение викторины: обновляем статистику
-            statisticService.store(correct: correctAnswersCount, total: presenter.questionsAmount)
+            statisticService.store(correct: presenter.correctAnswersCount, total: presenter.questionsAmount)
             
             // Получаем общую точность и количество игр из сервиса статистики
             let totalAccuracy = statisticService.totalAccuracy
@@ -163,7 +154,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
             
             // Описание текущей игры и статистики
             let description = """
-                Ваш результат: \(correctAnswersCount)/\(presenter.questionsAmount)
+                Ваш результат: \(presenter.correctAnswersCount)/\(presenter.questionsAmount)
                 Количество сыграных квизов: \(gameCount)
                 Рекорд: \(bestGame.correct)/\(bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
                 Средняя точность: \(String(format: "%.2f", totalAccuracy))%
@@ -176,7 +167,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
             showFinalResult(quiz: result)
             
             // Сбрасываем счетчик правильных ответов
-            correctAnswersCount = 0
+            presenter.resetCorrectAnswersCount()
         } else {
             // Если это не последний вопрос, продолжаем викторину
             presenter.switchToNextQuestion()
@@ -206,7 +197,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
             guard let self = self else { return }
             
             presenter.resetQuestionIndex()
-            self.correctAnswersCount = 0
+            presenter.resetCorrectAnswersCount()
             self.questionFactory?.requestNextQuestion()
         })
         
