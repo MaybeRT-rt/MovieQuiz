@@ -8,7 +8,7 @@
 import UIKit
 
 final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
-    
+
     // MARK: - IBOutlets
     @IBOutlet private weak var questionTitleLabel: UILabel!
     @IBOutlet private weak var indexLabel: UILabel!
@@ -19,12 +19,15 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     
     private var currentQuestion: QuizQuestions?
-    private var questionFactory: QuestionFactoryProtocol?
+  //  private var questionFactory: QuestionFactoryProtocol?
     private var alertPresenter = AlertPresenter()
-    private var statisticService: StatisticServiceProtocol = StatisticService()
-    private let presenter = MovieQuizPresenter()
+   // private var statisticService: StatisticServiceProtocol = StatisticService()
     
-    private var correctAnswersCount: Int = 0
+    private lazy var presenter: MovieQuizPresenter = {
+        return MovieQuizPresenter(viewController: self)
+    }()
+    
+    //private var correctAnswersCount: Int = 0
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -34,24 +37,21 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         
         alertPresenter.alertDelegate = self
         presenter.viewController = self
-    
-        questionFactory = QuestionFactory(delegate: self, movieLoader: MoviesLoader(), questionGenerator: QuestionGenerator())
-        statisticService = StatisticService()
-        
+
         showLoadingIndicator()
-        questionFactory?.loadData()
+        presenter.questionFactory?.loadData()
     }
     
     // MARK: - IBActions
     @IBAction private func yesButtonTapped(_ sender: Any) {
         enabledNextButton(false)
-        presenter.currentQuestion = currentQuestion
+        //presenter.currentQuestion = currentQuestion
         presenter.yesButtonTapped()
     }
     
     @IBAction private func noButtonTapped(_ sender: Any) {
         enabledNextButton(false)
-        presenter.currentQuestion = currentQuestion
+       // presenter.currentQuestion = currentQuestion
         presenter.noButtonTapped()
     }
     
@@ -93,13 +93,12 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     
     // MARK: - Logic
     // Отображаем текущий вопрос
-    private func show(quiz step: QuizStepViewModel) {
+    func show(quiz step: QuizStepViewModel) {
         previewImage?.isHidden = true // Скрываем старое изображение
         previewImage?.image = step.image
         questionLabel?.text = step.questions
         indexLabel?.text = step.questionNumber
         
-        // Показать изображение только после его загрузки
         DispatchQueue.main.async {
             self.previewImage?.isHidden = false // Показываем новое изображение
             self.enabledNextButton(true)
@@ -108,7 +107,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     }
     
     // Отображаем результат викторины
-    private func showFinalResult(quiz result: QuizResultViewModel) {
+    func showFinalResult(quiz result: QuizResultViewModel) {
         let alertModel = AlertModel(title: result.title, message: result.description, buttonText: result.buttonText, completion: { [weak self] in
             guard let self = self else { return }
             self.alertButtonTapped()
@@ -118,9 +117,13 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     }
     
     func alertButtonTapped() {
-        presenter.resetQuestionIndex()
         resetImageBorder()
-        questionFactory?.requestNextQuestion()
+        presenter.resetGame()
+    }
+    
+    
+    func didReceiveNextQuestion(question: QuizQuestions?) {
+        presenter.didReceiveNextQuestion(question: question)
     }
     
     // Отображаем результат ответа (правильный или неправильный)
@@ -133,48 +136,15 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
             
             guard let self = self else { return }
             self.showLoadingIndicator()
-            self.showNextQuestionsOrFinish()
+           // self.presenter.correctAnswersCount = self.presenter.correctAnswersCount
+            //self.presenter.questionFactory = self.questionFactory
+            self.presenter.showNextQuestionsOrFinish()
         }
     }
     
-    private func resetImageBorder() {
+    func resetImageBorder() {
         previewImage.layer.borderWidth = 0
         previewImage.layer.borderColor = nil
-    }
-    
-    private func showNextQuestionsOrFinish() {
-        if presenter.isLastQuestion() {
-            // Завершение викторины: обновляем статистику
-            statisticService.store(correct: presenter.correctAnswersCount, total: presenter.questionsAmount)
-            
-            // Получаем общую точность и количество игр из сервиса статистики
-            let totalAccuracy = statisticService.totalAccuracy
-            let gameCount = statisticService.gameCount
-            let bestGame = statisticService.bestGame
-            
-            // Описание текущей игры и статистики
-            let description = """
-                Ваш результат: \(presenter.correctAnswersCount)/\(presenter.questionsAmount)
-                Количество сыграных квизов: \(gameCount)
-                Рекорд: \(bestGame.correct)/\(bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
-                Средняя точность: \(String(format: "%.2f", totalAccuracy))%
-                """
-            
-            // Создаем результат для отображения в алерте
-            let result = QuizResultViewModel(title: "Этот раунд окончен!", description: description, buttonText: "Сыграть еще раз")
-            
-            // Показываем финальный результат
-            showFinalResult(quiz: result)
-            
-            // Сбрасываем счетчик правильных ответов
-            presenter.resetCorrectAnswersCount()
-        } else {
-            // Если это не последний вопрос, продолжаем викторину
-            presenter.switchToNextQuestion()
-            previewImage.image = nil
-            resetImageBorder()
-            questionFactory?.requestNextQuestion()
-        }
     }
     
     private func enabledNextButton(_ isEnabled: Bool) {
@@ -182,119 +152,26 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         noButton.isEnabled = isEnabled
     }
     
-    private func showLoadingIndicator() {
+    func showLoadingIndicator() {
         activityIndicator.startAnimating()
     }
     
-    private func hideLoadingIndicator() {
+    func hideLoadingIndicator() {
         activityIndicator.stopAnimating()
     }
     
-    private func showNetworkError(message: String) {
-        hideLoadingIndicator()
+    func showNetworkError(message: String) {
+       // hideLoadingIndicator()
         
         let alert = AlertModel(title: "Ошибка", message: message, buttonText: "Поробовать еще раз", completion: { [weak self] in
             guard let self = self else { return }
             
-            presenter.resetQuestionIndex()
-            presenter.resetCorrectAnswersCount()
-            self.questionFactory?.requestNextQuestion()
+            presenter.resetGame()
+            //presenter.resetCorrectAnswersCount()
+            //presenter.questionFactory?.requestNextQuestion()
         })
         
         alertPresenter.showAlert(on: self, with: alert)
     }
 }
 
-extension MovieQuizViewController: QuestionFactoryDelegate {
-    
-    
-    // MARK: - QuestionFactoryDelegate
-    
-    func didReceiveNextQuestion(question: QuizQuestions?) {
-        guard let question = question else {
-            return
-        }
-        
-        currentQuestion = question
-        let viewModel = presenter.convert(model: question)
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.show(quiz: viewModel)
-            self?.hideLoadingIndicator()
-        }
-    }
-    
-    func didLoadDataFromServer() {
-        hideLoadingIndicator()
-                
-        questionFactory?.requestNextQuestion() // Запрашиваем первый вопрос
-    }
-    
-    func didFailToLoadData(error: any Error) {
-        showNetworkError(message: error.localizedDescription)
-    }
-}
-
-/*
- Mock-данные
- 
- 
- Картинка: The Godfather
- Настоящий рейтинг: 9,2
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: The Dark Knight
- Настоящий рейтинг: 9
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: Kill Bill
- Настоящий рейтинг: 8,1
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: The Avengers
- Настоящий рейтинг: 8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: Deadpool
- Настоящий рейтинг: 8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: The Green Knight
- Настоящий рейтинг: 6,6
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: Old
- Настоящий рейтинг: 5,8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- 
- 
- Картинка: The Ice Age Adventures of Buck Wild
- Настоящий рейтинг: 4,3
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- 
- 
- Картинка: Tesla
- Настоящий рейтинг: 5,1
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- 
- 
- Картинка: Vivarium
- Настоящий рейтинг: 5,8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
-*/
