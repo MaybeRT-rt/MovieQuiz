@@ -14,7 +14,7 @@ final class QuestionFactory: QuestionFactoryProtocol {
     
     private var movies: [MostPopularMovie] = []
     
-    init(delegate: QuestionFactoryDelegate?, movieLoader: MoviesLoading, questionGenerator: QuestionGeneratorProtocol) {
+    init(delegate: QuestionFactoryDelegate, movieLoader: MoviesLoading, questionGenerator: QuestionGeneratorProtocol) {
         self.delegate = delegate
         self.movieLoader = movieLoader
         self.questionGenerator = questionGenerator

@@ -8,8 +8,7 @@
 import Foundation
 import UIKit
 
-final class MovieQuizPresenter: QuestionFactoryDelegate {
- 
+final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate {
     let questionsAmount: Int = 10
     var currentQuestionIndex = 0
     var correctAnswersCount = 0
@@ -17,6 +16,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     var currentQuestion: QuizQuestions?
     
     weak var viewController: MovieQuizViewController?
+    var alertDelegate: AlertPresenterDelegate?
     private var statisticService: StatisticServiceProtocol?
     var questionFactory: QuestionFactoryProtocol?
     
@@ -44,9 +44,9 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         currentQuestionIndex += 1
     }
     
-//    func resetCorrectAnswersCount() {
-//        correctAnswersCount = 0
-//    }
+    //    func resetCorrectAnswersCount() {
+    //        correctAnswersCount = 0
+    //    }
     
     // Конвертируем модель вопроса в модель отображения
     func convert(model: QuizQuestions) -> QuizStepViewModel {
@@ -54,7 +54,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             image: (UIImage(data: model.image ?? Data()) ?? UIImage()),
             questions: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-
+        
         return question
     }
     
@@ -66,8 +66,13 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         proceedWithAnswer(isYes: true)
     }
     
-     func noButtonTapped() {
-         proceedWithAnswer(isYes: false)
+    func noButtonTapped() {
+        proceedWithAnswer(isYes: false)
+    }
+    
+    func alertButtonTapped() {
+        viewController?.resetImageBorder()
+        resetGame()
     }
     
     private func didAnswer(isYes: Bool) {
@@ -160,5 +165,4 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     func didFailToLoadData(error: any Error) {
         viewController?.showNetworkError(message: error.localizedDescription)
     }
-    
 }

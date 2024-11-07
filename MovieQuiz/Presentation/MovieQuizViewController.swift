@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
+final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
 
     // MARK: - IBOutlets
     @IBOutlet private weak var questionTitleLabel: UILabel!
@@ -17,17 +17,12 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet private weak var noButton: UIButton!
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
-    
-    private var currentQuestion: QuizQuestions?
-  //  private var questionFactory: QuestionFactoryProtocol?
+ 
     private var alertPresenter = AlertPresenter()
-   // private var statisticService: StatisticServiceProtocol = StatisticService()
     
     private lazy var presenter: MovieQuizPresenter = {
         return MovieQuizPresenter(viewController: self)
     }()
-    
-    //private var correctAnswersCount: Int = 0
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -35,7 +30,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         setupUI()
         addAccessibilityIdentifier()
         
-        alertPresenter.alertDelegate = self
+       // alertPresenter.alertDelegate = self
         presenter.viewController = self
 
         showLoadingIndicator()
@@ -44,14 +39,10 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     
     // MARK: - IBActions
     @IBAction private func yesButtonTapped(_ sender: Any) {
-        enabledNextButton(false)
-        //presenter.currentQuestion = currentQuestion
         presenter.yesButtonTapped()
     }
     
     @IBAction private func noButtonTapped(_ sender: Any) {
-        enabledNextButton(false)
-       // presenter.currentQuestion = currentQuestion
         presenter.noButtonTapped()
     }
     
@@ -117,8 +108,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     }
     
     func alertButtonTapped() {
-        resetImageBorder()
-        presenter.resetGame()
+        presenter.alertButtonTapped()
     }
     
     
@@ -153,14 +143,10 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     }
     
     func showNetworkError(message: String) {
-       // hideLoadingIndicator()
-        
         let alert = AlertModel(title: "Ошибка", message: message, buttonText: "Поробовать еще раз", completion: { [weak self] in
             guard let self = self else { return }
             
             presenter.resetGame()
-            //presenter.resetCorrectAnswersCount()
-            //presenter.questionFactory?.requestNextQuestion()
         })
         
         alertPresenter.showAlert(on: self, with: alert)
