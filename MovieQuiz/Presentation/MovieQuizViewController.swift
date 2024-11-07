@@ -30,7 +30,6 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         setupUI()
         addAccessibilityIdentifier()
         
-       // alertPresenter.alertDelegate = self
         presenter.viewController = self
 
         showLoadingIndicator()
@@ -107,10 +106,9 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         alertPresenter.showAlert(on: self, with: alertModel)
     }
     
-    func alertButtonTapped() {
+    private func alertButtonTapped() {
         presenter.alertButtonTapped()
     }
-    
     
     func didReceiveNextQuestion(question: QuizQuestions?) {
         presenter.didReceiveNextQuestion(question: question)
@@ -122,7 +120,6 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         previewImage.layer.borderWidth = 8
         previewImage.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
     }
-    
     
     func resetImageBorder() {
         previewImage.layer.borderWidth = 0

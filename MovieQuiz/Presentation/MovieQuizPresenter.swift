@@ -9,13 +9,14 @@ import Foundation
 import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate {
-    let questionsAmount: Int = 10
-    var currentQuestionIndex = 0
-    var correctAnswersCount = 0
     
-    var currentQuestion: QuizQuestions?
+    private let questionsAmount: Int = 10
+    private var currentQuestionIndex = 0
+    private var correctAnswersCount = 0
     
-    var alertDelegate: AlertPresenterDelegate?
+    private var currentQuestion: QuizQuestions?
+    
+    private var alertDelegate: AlertPresenterDelegate?
     private var statisticService: StatisticServiceProtocol?
     var questionFactory: QuestionFactoryProtocol?
     weak var viewController: MovieQuizViewControllerProtocol?
@@ -30,8 +31,12 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
         viewController.showLoadingIndicator()
     }
     
-    func isLastQuestion() -> Bool {
+    private func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
+    }
+    
+    func switchToNextQuestion() {
+        currentQuestionIndex += 1
     }
     
     func resetGame() {
@@ -39,14 +44,6 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
         correctAnswersCount = 0
         questionFactory?.requestNextQuestion()
     }
-    
-    func switchToNextQuestion() {
-        currentQuestionIndex += 1
-    }
-    
-    //    func resetCorrectAnswersCount() {
-    //        correctAnswersCount = 0
-    //    }
     
     // Конвертируем модель вопроса в модель отображения
     func convert(model: QuizQuestions) -> QuizStepViewModel {
@@ -75,6 +72,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
         resetGame()
     }
     
+    // Проверяет ответ пользователя и обновляет счетчик правильных ответов
     private func didAnswer(isYes: Bool) {
         guard let currentQuestion = currentQuestion else { return }
         
@@ -84,13 +82,13 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
         }
     }
     
-    
+    // Основной метод для обработки ответа пользователя
     func proceedWithAnswer(isYes: Bool) {
         didAnswer(isYes: isYes)
         let isCorrectAnswer = isYes == currentQuestion?.correctAnswer
         viewController?.highlightImageBorder(isCorrectAnswer: isCorrectAnswer)
         
-        setButtonsEnabled(false)
+        setButtonsEnabled(false) // Отключаем кнопки после ответа
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
@@ -114,7 +112,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
         }
     }
     
-    func showNextQuestionsOrFinish() {
+    private func showNextQuestionsOrFinish() {
         if self.isLastQuestion() {
             finishQuiz()
         } else {
@@ -122,7 +120,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
         }
     }
     
-    func makeResultsMessage() -> String {
+    // Создание сообщения с результатами для завершения квиза
+    private func makeResultsMessage() -> String {
         statisticService?.store(correct: correctAnswersCount, total: questionsAmount)
         
         let totalAccuracy = statisticService?.totalAccuracy ?? 0
@@ -157,6 +156,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
         questionFactory?.requestNextQuestion()
     }
     
+    // Обработка завершения загрузки данных с сервера
     func didLoadDataFromServer() {
         viewController?.hideLoadingIndicator()
         questionFactory?.requestNextQuestion()
