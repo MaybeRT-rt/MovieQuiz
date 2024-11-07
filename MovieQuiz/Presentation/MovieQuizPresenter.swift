@@ -15,13 +15,13 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
     
     var currentQuestion: QuizQuestions?
     
-    weak var viewController: MovieQuizViewController?
     var alertDelegate: AlertPresenterDelegate?
     private var statisticService: StatisticServiceProtocol?
     var questionFactory: QuestionFactoryProtocol?
+    weak var viewController: MovieQuizViewControllerProtocol?
     
     // Инициализация презентера, создаем зависимости внутри
-    init(viewController: MovieQuizViewController) {
+    init(viewController: MovieQuizViewControllerProtocol) {
         self.viewController = viewController
         
         // Инициализация зависимостей
