@@ -127,27 +127,19 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     }
     
     // Отображаем результат ответа (правильный или неправильный)
-    func showResult(isCorrect: Bool) {
+    func highlightImageBorder(isCorrectAnswer: Bool) {
         previewImage.layer.masksToBounds = true
         previewImage.layer.borderWidth = 8
-        previewImage.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            
-            guard let self = self else { return }
-            self.showLoadingIndicator()
-           // self.presenter.correctAnswersCount = self.presenter.correctAnswersCount
-            //self.presenter.questionFactory = self.questionFactory
-            self.presenter.showNextQuestionsOrFinish()
-        }
+        previewImage.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
     }
+    
     
     func resetImageBorder() {
         previewImage.layer.borderWidth = 0
         previewImage.layer.borderColor = nil
     }
     
-    private func enabledNextButton(_ isEnabled: Bool) {
+    func enabledNextButton(_ isEnabled: Bool) {
         yesButton.isEnabled = isEnabled
         noButton.isEnabled = isEnabled
     }

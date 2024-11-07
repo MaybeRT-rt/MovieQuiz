@@ -58,22 +58,39 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         return question
     }
     
+    private func setButtonsEnabled(_ isEnabled: Bool) {
+        viewController?.enabledNextButton(isEnabled)
+    }
+    
     func yesButtonTapped() {
-        didAnswer(isYes: true)
+        proceedWithAnswer(isYes: true)
     }
     
      func noButtonTapped() {
-         didAnswer(isYes: false)
+         proceedWithAnswer(isYes: false)
     }
     
     private func didAnswer(isYes: Bool) {
         guard let currentQuestion = currentQuestion else { return }
         
-        let correctAnswer = isYes
-        if correctAnswer == currentQuestion.correctAnswer {
+        // Сравниваем ответ пользователя с правильным ответом
+        if isYes == currentQuestion.correctAnswer {
             correctAnswersCount += 1
         }
-         viewController?.showResult(isCorrect: correctAnswer == currentQuestion.correctAnswer)
+    }
+    
+    
+    func proceedWithAnswer(isYes: Bool) {
+        didAnswer(isYes: isYes)
+        let isCorrectAnswer = isYes == currentQuestion?.correctAnswer
+        viewController?.highlightImageBorder(isCorrectAnswer: isCorrectAnswer)
+        
+        setButtonsEnabled(false)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self = self else { return }
+            self.showNextQuestionsOrFinish()
+        }
     }
     
     func didReceiveNextQuestion(question: QuizQuestions?) {
@@ -88,6 +105,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.show(quiz: viewModel)
             self?.viewController?.hideLoadingIndicator()
+            self?.setButtonsEnabled(true)
         }
     }
     
@@ -99,7 +117,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     }
     
-    func finishQuiz() {
+    func makeResultsMessage() -> String {
         statisticService?.store(correct: correctAnswersCount, total: questionsAmount)
         
         let totalAccuracy = statisticService?.totalAccuracy ?? 0
@@ -113,6 +131,11 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
                 Средняя точность: \(String(format: "%.2f", totalAccuracy))%
                 """
         
+        return description
+    }
+    
+    func finishQuiz() {
+        let description = makeResultsMessage()
         let result = QuizResultViewModel(
             title: "Этот раунд окончен!",
             description: description,
