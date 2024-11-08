@@ -8,13 +8,13 @@
 import XCTest
 @testable import MovieQuiz
 
-final class MovieQuizViewControllerMock: MovieQuizViewControllerProtocol {
+final class MovieQuizViewControllerMock: MovieQuizViewControllerProtocol {    
     // MARK: - Displaying Data
     func show(quiz step: MovieQuiz.QuizStepViewModel) {}
     func showAlert(alertModel: AlertModel) {}
     
     // MARK: - UI Interaction
-    func enabledNextButton(_ isEnabled: Bool) {}
+    func toggleAnswerButtons(_ isEnabled: Bool) {}
     func showLoadingIndicator() {}
     func hideLoadingIndicator() {}
     

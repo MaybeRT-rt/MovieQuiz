@@ -93,6 +93,16 @@ final class MovieQuizPresenter: AlertPresenterDelegate, QuestionFactoryDelegate 
         resetGame()
     }
     
+    // Конвертируем модель вопроса в модель отображения
+    func convert(model: QuizQuestions) -> QuizStepViewModel {
+        let question = QuizStepViewModel(
+            image: (UIImage(data: model.image ?? Data()) ?? UIImage()),
+            questions: model.text,
+            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
+        
+        return question
+    }
+    
     func didReceiveNextQuestion(question: QuizQuestions?) {
         guard let question = question else {
             print("Ошибка: Вопрос не загружен!")
@@ -151,16 +161,6 @@ final class MovieQuizPresenter: AlertPresenterDelegate, QuestionFactoryDelegate 
             guard let self = self else { return }
             showNextQuestionOrFinish()
         }
-    }
-    
-    // Конвертируем модель вопроса в модель отображения
-    private func convert(model: QuizQuestions) -> QuizStepViewModel {
-        let question = QuizStepViewModel(
-            image: (UIImage(data: model.image ?? Data()) ?? UIImage()),
-            questions: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-        
-        return question
     }
     
     private func isLastQuestion() -> Bool {
