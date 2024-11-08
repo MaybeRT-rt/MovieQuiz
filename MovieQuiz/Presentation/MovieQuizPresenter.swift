@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-final class MovieQuizPresenter: AlertPresenterDelegate, QuestionFactoryDelegate {
+final class MovieQuizPresenter {
     
     weak var viewController: MovieQuizViewControllerProtocol?
     private let questionsAmount: Int = 10
@@ -89,10 +89,6 @@ final class MovieQuizPresenter: AlertPresenterDelegate, QuestionFactoryDelegate 
         viewController?.showAlert(alertModel: alertModel)
     }
     
-    func alertButtonTapped() {
-        resetGame()
-    }
-    
     // Конвертируем модель вопроса в модель отображения
     func convert(model: QuizQuestions) -> QuizStepViewModel {
         let question = QuizStepViewModel(
@@ -103,30 +99,30 @@ final class MovieQuizPresenter: AlertPresenterDelegate, QuestionFactoryDelegate 
         return question
     }
     
-    func didReceiveNextQuestion(question: QuizQuestions?) {
-        guard let question = question else {
-            print("Ошибка: Вопрос не загружен!")
-            return
-        }
-        currentQuestion = question
-        let viewModel = convert(model: question)
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.viewController?.show(quiz: viewModel)
-            self?.viewController?.hideLoadingIndicator()
-            self?.setButtonsEnabled(true)
-        }
-    }
+//    func didReceiveNextQuestion(question: QuizQuestions?) {
+//        guard let question = question else {
+//            print("Ошибка: Вопрос не загружен!")
+//            return
+//        }
+//        currentQuestion = question
+//        let viewModel = convert(model: question)
+//        
+//        DispatchQueue.main.async { [weak self] in
+//            self?.viewController?.show(quiz: viewModel)
+//            self?.viewController?.hideLoadingIndicator()
+//            self?.setButtonsEnabled(true)
+//        }
+//    }
     
     // Обработка завершения загрузки данных с сервера
-    func didLoadDataFromServer() {
-        viewController?.hideLoadingIndicator()
-        questionFactory?.requestNextQuestion()
-    }
+//    func didLoadDataFromServer() {
+//        viewController?.hideLoadingIndicator()
+//        questionFactory?.requestNextQuestion()
+//    }
     
-    func didFailToLoadData(error: any Error) {
-        showNetworkError(message: error.localizedDescription)
-    }
+//    func didFailToLoadData(error: any Error) {
+//        showNetworkError(message: error.localizedDescription)
+//    }
     
     // MARK: - Private Methods
     
@@ -191,5 +187,41 @@ final class MovieQuizPresenter: AlertPresenterDelegate, QuestionFactoryDelegate 
                 """
         
         return description
+    }
+}
+
+// MARK: - AlertPresenterDelegate
+extension MovieQuizPresenter: AlertPresenterDelegate {
+    
+    func alertButtonTapped() {
+        resetGame()
+    }
+}
+
+// MARK: - QuestionFactoryDelegate
+extension MovieQuizPresenter: QuestionFactoryDelegate {
+    
+    func didReceiveNextQuestion(question: QuizQuestions?) {
+        guard let question = question else {
+            print("Ошибка: Вопрос не загружен!")
+            return
+        }
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.show(quiz: viewModel)
+            self?.viewController?.hideLoadingIndicator()
+            self?.setButtonsEnabled(true)
+        }
+    }
+    
+    func didLoadDataFromServer() {
+        viewController?.hideLoadingIndicator()
+        questionFactory?.requestNextQuestion()
+    }
+    
+    func didFailToLoadData(error: Error){
+        showNetworkError(message: error.localizedDescription)
     }
 }
