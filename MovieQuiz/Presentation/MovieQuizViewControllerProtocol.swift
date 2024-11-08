@@ -6,15 +6,16 @@
 //
 
 protocol MovieQuizViewControllerProtocol: AnyObject {
+    // MARK: - Displaying Data
     func show(quiz step: QuizStepViewModel)
-    func showFinalResult(quiz result: QuizResultViewModel)
+    func showAlert(alertModel: AlertModel)
     
-    func highlightImageBorder(isCorrectAnswer: Bool)
+    // MARK: - UI Interaction
+    func toggleAnswerButtons(_ isEnabled: Bool)
     func showLoadingIndicator()
     func hideLoadingIndicator()
     
-    func enabledNextButton(_ isEnabled: Bool)
+    // MARK: - UI State Updates
+    func highlightImageBorder(isCorrectAnswer: Bool)
     func resetImageBorder()
-    
-    func showNetworkError(message: String)
 }

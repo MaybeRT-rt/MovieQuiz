@@ -9,16 +9,18 @@ import XCTest
 @testable import MovieQuiz
 
 final class MovieQuizViewControllerMock: MovieQuizViewControllerProtocol {
+    // MARK: - Displaying Data
     func show(quiz step: MovieQuiz.QuizStepViewModel) {}
-    func showFinalResult(quiz result: MovieQuiz.QuizResultViewModel) {}
-    func highlightImageBorder(isCorrectAnswer: Bool) {}
+    func showAlert(alertModel: AlertModel) {}
+    
+    // MARK: - UI Interaction
+    func enabledNextButton(_ isEnabled: Bool) {}
     func showLoadingIndicator() {}
     func hideLoadingIndicator() {}
     
-    func enabledNextButton(_ isEnabled: Bool) {}
+    // MARK: - UI State Updates
+    func highlightImageBorder(isCorrectAnswer: Bool) {}
     func resetImageBorder() {}
-    
-    func showNetworkError(message: String) {}
 }
 
 final class MovieQuizPresenterTests: XCTestCase {

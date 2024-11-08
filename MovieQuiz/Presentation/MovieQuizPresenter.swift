@@ -8,55 +8,46 @@
 import Foundation
 import UIKit
 
-final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate {
+final class MovieQuizPresenter: AlertPresenterDelegate, QuestionFactoryDelegate {
     
+    weak var viewController: MovieQuizViewControllerProtocol?
     private let questionsAmount: Int = 10
     private var currentQuestionIndex = 0
     private var correctAnswersCount = 0
-    
     private var currentQuestion: QuizQuestions?
-    
     private var alertDelegate: AlertPresenterDelegate?
     private var statisticService: StatisticServiceProtocol?
-    var questionFactory: QuestionFactoryProtocol?
-    weak var viewController: MovieQuizViewControllerProtocol?
+    private var questionFactory: QuestionFactoryProtocol?
     
+    // MARK: - Initialization
     // Инициализация презентера, создаем зависимости внутри
     init(viewController: MovieQuizViewControllerProtocol) {
         self.viewController = viewController
-        
         // Инициализация зависимостей
         self.questionFactory = QuestionFactory(delegate: self, movieLoader: MoviesLoader(), questionGenerator: QuestionGenerator())
         self.statisticService = StatisticService()
-        viewController.showLoadingIndicator()
     }
     
-    private func isLastQuestion() -> Bool {
-        currentQuestionIndex == questionsAmount - 1
-    }
-    
-    func switchToNextQuestion() {
-        currentQuestionIndex += 1
+    // MARK: - Public Methods
+    func loadDataForView() {
+        viewController?.showLoadingIndicator()
+        questionFactory?.loadData()
     }
     
     func resetGame() {
         currentQuestionIndex = 0
         correctAnswersCount = 0
+        // Обновляем интерфейс
+        viewController?.resetImageBorder()
+        // Запускаем загрузку данных для новой игры
+        loadDataForView()
+    }
+    
+    func showNextQuestion() {
+        switchToNextQuestion()
+        viewController?.resetImageBorder()
+        viewController?.showLoadingIndicator()
         questionFactory?.requestNextQuestion()
-    }
-    
-    // Конвертируем модель вопроса в модель отображения
-    func convert(model: QuizQuestions) -> QuizStepViewModel {
-        let question = QuizStepViewModel(
-            image: (UIImage(data: model.image ?? Data()) ?? UIImage()),
-            questions: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-        
-        return question
-    }
-    
-    private func setButtonsEnabled(_ isEnabled: Bool) {
-        viewController?.enabledNextButton(isEnabled)
     }
     
     func yesButtonTapped() {
@@ -67,9 +58,71 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
         proceedWithAnswer(isYes: false)
     }
     
+    func finishQuiz() {
+        let description = makeResultsMessage()
+        let result = QuizResultViewModel(
+            title: "Этот раунд окончен!",
+            description: description,
+            buttonText: "Сыграть еще раз"
+        )
+        
+        showFinalResult(quiz: result)
+    }
+    
+    func showFinalResult(quiz result: QuizResultViewModel) {
+        let alertModel = AlertModel(
+            title: result.title,
+            message: result.description,
+            buttonText: result.buttonText,
+            completion: { [weak self] in
+                self?.resetGame()
+            }
+        )
+        viewController?.showAlert(alertModel: alertModel)
+    }
+    
+    func showNetworkError(message: String) {
+        let alertModel = AlertModel(title: "Ошибка", message: message, buttonText: "Поробовать еще раз", completion: { [weak self] in
+            self?.resetGame()
+        })
+        
+        viewController?.showAlert(alertModel: alertModel)
+    }
+    
     func alertButtonTapped() {
-        viewController?.resetImageBorder()
         resetGame()
+    }
+    
+    func didReceiveNextQuestion(question: QuizQuestions?) {
+        guard let question = question else {
+            print("Ошибка: Вопрос не загружен!")
+            return
+        }
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.show(quiz: viewModel)
+            self?.viewController?.hideLoadingIndicator()
+            self?.setButtonsEnabled(true)
+        }
+    }
+    
+    // Обработка завершения загрузки данных с сервера
+    func didLoadDataFromServer() {
+        viewController?.hideLoadingIndicator()
+        questionFactory?.requestNextQuestion()
+    }
+    
+    func didFailToLoadData(error: any Error) {
+        showNetworkError(message: error.localizedDescription)
+    }
+    
+    // MARK: - Private Methods
+    
+    
+    private func switchToNextQuestion() {
+        currentQuestionIndex += 1
     }
     
     // Проверяет ответ пользователя и обновляет счетчик правильных ответов
@@ -82,6 +135,10 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
         }
     }
     
+    private func setButtonsEnabled(_ isEnabled: Bool) {
+        viewController?.toggleAnswerButtons(isEnabled)
+    }
+    
     // Основной метод для обработки ответа пользователя
     func proceedWithAnswer(isYes: Bool) {
         didAnswer(isYes: isYes)
@@ -92,28 +149,26 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
-            self.showNextQuestionsOrFinish()
+            showNextQuestionOrFinish()
         }
     }
     
-    func didReceiveNextQuestion(question: QuizQuestions?) {
-        guard let question = question else {
-            print("Ошибка: Вопрос не загружен!")
-            return
-        }
+    // Конвертируем модель вопроса в модель отображения
+    private func convert(model: QuizQuestions) -> QuizStepViewModel {
+        let question = QuizStepViewModel(
+            image: (UIImage(data: model.image ?? Data()) ?? UIImage()),
+            questions: model.text,
+            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
         
-        currentQuestion = question
-        let viewModel = convert(model: question)
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.viewController?.show(quiz: viewModel)
-            self?.viewController?.hideLoadingIndicator()
-            self?.setButtonsEnabled(true)
-        }
+        return question
     }
     
-    private func showNextQuestionsOrFinish() {
-        if self.isLastQuestion() {
+    private func isLastQuestion() -> Bool {
+        currentQuestionIndex == questionsAmount - 1
+    }
+    
+    private func showNextQuestionOrFinish() {
+        if isLastQuestion() {
             finishQuiz()
         } else {
             showNextQuestion()
@@ -136,33 +191,5 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
                 """
         
         return description
-    }
-    
-    func finishQuiz() {
-        let description = makeResultsMessage()
-        let result = QuizResultViewModel(
-            title: "Этот раунд окончен!",
-            description: description,
-            buttonText: "Сыграть еще раз"
-        )
-        
-        viewController?.showFinalResult(quiz: result)
-        resetGame()
-    }
-    
-    func showNextQuestion() {
-        self.switchToNextQuestion()
-        viewController?.resetImageBorder()
-        questionFactory?.requestNextQuestion()
-    }
-    
-    // Обработка завершения загрузки данных с сервера
-    func didLoadDataFromServer() {
-        viewController?.hideLoadingIndicator()
-        questionFactory?.requestNextQuestion()
-    }
-    
-    func didFailToLoadData(error: any Error) {
-        viewController?.showNetworkError(message: error.localizedDescription)
     }
 }

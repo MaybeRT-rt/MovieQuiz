@@ -8,7 +8,7 @@
 import UIKit
 
 final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
-
+    
     // MARK: - IBOutlets
     @IBOutlet private weak var questionTitleLabel: UILabel!
     @IBOutlet private weak var indexLabel: UILabel!
@@ -17,7 +17,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet private weak var noButton: UIButton!
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
- 
+    
     private var alertPresenter = AlertPresenter()
     
     private lazy var presenter: MovieQuizPresenter = {
@@ -29,11 +29,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         super.viewDidLoad()
         setupUI()
         addAccessibilityIdentifier()
-        
-        presenter.viewController = self
-
-        showLoadingIndicator()
-        presenter.questionFactory?.loadData()
+        presenter.loadDataForView()
     }
     
     // MARK: - IBActions
@@ -45,7 +41,55 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         presenter.noButtonTapped()
     }
     
-    // MARK: - UI
+    // MARK: - Public Methods
+    // Отображаем текущий вопрос
+    func show(quiz step: QuizStepViewModel) {
+        previewImage?.isHidden = true // Скрываем старое изображение
+        previewImage?.image = step.image
+        questionLabel?.text = step.questions
+        indexLabel?.text = step.questionNumber
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.previewImage?.isHidden = false // Показываем новое изображение
+            self?.toggleAnswerButtons(true)
+            self?.hideLoadingIndicator()
+        }
+    }
+    
+    func showAlert(alertModel: AlertModel) {
+        alertPresenter.showAlert(on: self, with: alertModel)
+    }
+    
+    func didReceiveNextQuestion(question: QuizQuestions?) {
+        presenter.didReceiveNextQuestion(question: question)
+    }
+    
+    // Отображаем результат ответа (правильный или неправильный)
+    func highlightImageBorder(isCorrectAnswer: Bool) {
+        previewImage.layer.masksToBounds = true
+        previewImage.layer.borderWidth = 8
+        previewImage.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+    }
+    
+    func resetImageBorder() {
+        previewImage.layer.borderWidth = 0
+        previewImage.layer.borderColor = nil
+    }
+    
+    func toggleAnswerButtons(_ enabled: Bool) {
+        yesButton.isEnabled = enabled
+        noButton.isEnabled = enabled
+    }
+    
+    func showLoadingIndicator() {
+        activityIndicator.startAnimating()
+    }
+    
+    func hideLoadingIndicator() {
+        activityIndicator.stopAnimating()
+    }
+    
+    // MARK: - Private Methods
     private func setupUI() {
         view.backgroundColor = .ypBlack
         
@@ -80,73 +124,4 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         textLabel.font = UIFont(name: fontName, size: size) ?? UIFont.systemFont(ofSize: size)
         textLabel.textColor = .ypWhite
     }
-    
-    // MARK: - Logic
-    // Отображаем текущий вопрос
-    func show(quiz step: QuizStepViewModel) {
-        previewImage?.isHidden = true // Скрываем старое изображение
-        previewImage?.image = step.image
-        questionLabel?.text = step.questions
-        indexLabel?.text = step.questionNumber
-        
-        DispatchQueue.main.async {
-            self.previewImage?.isHidden = false // Показываем новое изображение
-            self.enabledNextButton(true)
-            self.hideLoadingIndicator()
-        }
-    }
-    
-    // Отображаем результат викторины
-    func showFinalResult(quiz result: QuizResultViewModel) {
-        let alertModel = AlertModel(title: result.title, message: result.description, buttonText: result.buttonText, completion: { [weak self] in
-            guard let self = self else { return }
-            self.alertButtonTapped()
-            }
-        )
-        alertPresenter.showAlert(on: self, with: alertModel)
-    }
-    
-    private func alertButtonTapped() {
-        presenter.alertButtonTapped()
-    }
-    
-    func didReceiveNextQuestion(question: QuizQuestions?) {
-        presenter.didReceiveNextQuestion(question: question)
-    }
-    
-    // Отображаем результат ответа (правильный или неправильный)
-    func highlightImageBorder(isCorrectAnswer: Bool) {
-        previewImage.layer.masksToBounds = true
-        previewImage.layer.borderWidth = 8
-        previewImage.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-    }
-    
-    func resetImageBorder() {
-        previewImage.layer.borderWidth = 0
-        previewImage.layer.borderColor = nil
-    }
-    
-    func enabledNextButton(_ isEnabled: Bool) {
-        yesButton.isEnabled = isEnabled
-        noButton.isEnabled = isEnabled
-    }
-    
-    func showLoadingIndicator() {
-        activityIndicator.startAnimating()
-    }
-    
-    func hideLoadingIndicator() {
-        activityIndicator.stopAnimating()
-    }
-    
-    func showNetworkError(message: String) {
-        let alert = AlertModel(title: "Ошибка", message: message, buttonText: "Поробовать еще раз", completion: { [weak self] in
-            guard let self = self else { return }
-            
-            presenter.resetGame()
-        })
-        
-        alertPresenter.showAlert(on: self, with: alert)
-    }
 }
-
