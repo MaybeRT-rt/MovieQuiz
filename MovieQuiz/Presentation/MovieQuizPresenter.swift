@@ -99,31 +99,6 @@ final class MovieQuizPresenter {
         return question
     }
     
-//    func didReceiveNextQuestion(question: QuizQuestions?) {
-//        guard let question = question else {
-//            print("Ошибка: Вопрос не загружен!")
-//            return
-//        }
-//        currentQuestion = question
-//        let viewModel = convert(model: question)
-//        
-//        DispatchQueue.main.async { [weak self] in
-//            self?.viewController?.show(quiz: viewModel)
-//            self?.viewController?.hideLoadingIndicator()
-//            self?.setButtonsEnabled(true)
-//        }
-//    }
-    
-    // Обработка завершения загрузки данных с сервера
-//    func didLoadDataFromServer() {
-//        viewController?.hideLoadingIndicator()
-//        questionFactory?.requestNextQuestion()
-//    }
-    
-//    func didFailToLoadData(error: any Error) {
-//        showNetworkError(message: error.localizedDescription)
-//    }
-    
     // MARK: - Private Methods
     
     

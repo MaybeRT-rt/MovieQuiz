@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
+final class MovieQuizViewController: UIViewController {
     
     // MARK: - IBOutlets
     @IBOutlet private weak var questionTitleLabel: UILabel!
@@ -42,51 +42,9 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     }
     
     // MARK: - Public Methods
-    // Отображаем текущий вопрос
-    func show(quiz step: QuizStepViewModel) {
-        previewImage?.isHidden = true // Скрываем старое изображение
-        previewImage?.image = step.image
-        questionLabel?.text = step.questions
-        indexLabel?.text = step.questionNumber
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.previewImage?.isHidden = false // Показываем новое изображение
-            self?.toggleAnswerButtons(true)
-            self?.hideLoadingIndicator()
-        }
-    }
-    
-    func showAlert(alertModel: AlertModel) {
-        alertPresenter.showAlert(on: self, with: alertModel)
-    }
     
     func didReceiveNextQuestion(question: QuizQuestions?) {
         presenter.didReceiveNextQuestion(question: question)
-    }
-    
-    // Отображаем результат ответа (правильный или неправильный)
-    func highlightImageBorder(isCorrectAnswer: Bool) {
-        previewImage.layer.masksToBounds = true
-        previewImage.layer.borderWidth = 8
-        previewImage.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-    }
-    
-    func resetImageBorder() {
-        previewImage.layer.borderWidth = 0
-        previewImage.layer.borderColor = nil
-    }
-    
-    func toggleAnswerButtons(_ enabled: Bool) {
-        yesButton.isEnabled = enabled
-        noButton.isEnabled = enabled
-    }
-    
-    func showLoadingIndicator() {
-        activityIndicator.startAnimating()
-    }
-    
-    func hideLoadingIndicator() {
-        activityIndicator.stopAnimating()
     }
     
     // MARK: - Private Methods
@@ -123,5 +81,52 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     private func setupText(textLabel: UILabel, fontName: String, size: CGFloat) {
         textLabel.font = UIFont(name: fontName, size: size) ?? UIFont.systemFont(ofSize: size)
         textLabel.textColor = .ypWhite
+    }
+}
+
+// MARK: - MovieQuizViewControllerProtocol
+
+extension MovieQuizViewController: MovieQuizViewControllerProtocol {
+    // MARK: - Displaying Data
+    func show(quiz step: QuizStepViewModel) {
+        previewImage?.isHidden = true // Скрываем старое изображение
+        previewImage?.image = step.image
+        questionLabel?.text = step.questions
+        indexLabel?.text = step.questionNumber
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.previewImage?.isHidden = false // Показываем новое изображение
+            self?.toggleAnswerButtons(true)
+            self?.hideLoadingIndicator()
+        }
+    }
+    
+    func showAlert(alertModel: AlertModel) {
+        alertPresenter.showAlert(on: self, with: alertModel)
+    }
+    
+    // MARK: - UI Interaction
+    func toggleAnswerButtons(_ isEnabled: Bool) {
+        yesButton.isEnabled = isEnabled
+        noButton.isEnabled = isEnabled
+    }
+    
+    func showLoadingIndicator() {
+        activityIndicator.startAnimating()
+    }
+    func hideLoadingIndicator() {
+        activityIndicator.stopAnimating()
+    }
+    
+    // MARK: - UI State Updates
+    func highlightImageBorder(isCorrectAnswer: Bool) {
+        previewImage.layer.masksToBounds = true
+        previewImage.layer.borderWidth = 8
+        previewImage.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+    }
+    
+    func resetImageBorder() {
+        previewImage.layer.borderWidth = 0
+        previewImage.layer.borderColor = nil
     }
 }
