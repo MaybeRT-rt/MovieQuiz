@@ -65,7 +65,7 @@ final class MovieQuizPresenter: AlertPresenterDelegate, QuestionFactoryDelegate 
             description: description,
             buttonText: "Сыграть еще раз"
         )
-        
+        viewController?.toggleAnswerButtons(false)
         showFinalResult(quiz: result)
     }
     
