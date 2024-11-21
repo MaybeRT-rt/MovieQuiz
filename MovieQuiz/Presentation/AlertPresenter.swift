@@ -13,9 +13,12 @@ final class AlertPresenter {
     
     func showAlert(on viewController: UIViewController, with model: AlertModel) {
         let alert = UIAlertController(title: model.title, message: model.message, preferredStyle: .alert)
+        alert.view.accessibilityIdentifier = "GameResult"
         let action = UIAlertAction(title: model.buttonText, style: .default) { _ in
             model.completion()
         }
+        action.accessibilityIdentifier = "retryButton"
+        
         alert.addAction(action)
         alert.preferredAction = action
         viewController.present(alert, animated: true)
